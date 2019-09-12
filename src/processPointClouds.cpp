@@ -53,8 +53,40 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 {
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
-	pcl::PointIndices::Ptr inliers;
-    // TODO:: Fill in this function to find inliers for the cloud.
+
+    // COMPLETED:: Fill in this function to find inliers for the cloud.
+
+    //coefficients object hold model coefficients [a, b, c, d]. (in this case, plan, ax + by + cz + d) 
+    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients());
+    //to hold points that fit to the plane with error less than a threshold
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+    //create segmentation object to perform segmentation on points
+    pcl::SACSegmentation<PointT> seg;
+
+    //set segmentation params
+    //we want to fit a plan to detect road so set model type plan
+    seg.setModelType(pcl::SACMODEL_PLANE);
+    //we want to use RANSAC algorithm to fit the plan model
+    seg.setMethodType(pcl::SAC_RANSAC);
+    //As RANSAC is an iterative algorithm so we set the max iterations
+    //the more the iterations the better results but slower 
+    seg.setMaxIterations(maxIterations);
+    //“distance threshold”, which determines how close a point must be to the model in order to be considered an inlier.
+    seg.setDistanceThreshold(distanceThreshold);
+
+    //optional, ask algorithm to optimize model (plan in this case) coefficients (a, b, c, d) as much possible
+    seg.setOptimizeCoefficients(true);
+    //give the input cloud
+    seg.setInputCloud(cloud);
+
+    //run the segmentation
+    seg.segment(*inliers, *coefficients);
+
+    std::cout << "Model coefficients: " << coefficients->values[0] << " " 
+                                      << coefficients->values[1] << " "
+                                      << coefficients->values[2] << " " 
+                                      << coefficients->values[3] << std::endl;
+    std::cout << "Model inliers: " << inliers->indices.size () << std::endl;
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);

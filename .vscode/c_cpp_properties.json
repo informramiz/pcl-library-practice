@@ -6,7 +6,8 @@
                 "${workspaceFolder}/**",
                 "/usr/local/Cellar/pcl/1.9.1_4/include/pcl-1.9",
                 "/usr/local/Cellar/eigen/3.3.7/include/eigen3",
-                "/usr/local/Cellar/vtk/8.2.0/include/vtk-8.2"
+                "/usr/local/Cellar/vtk/8.2.0/include/vtk-8.2",
+                "/usr/local/Cellar/vtk/8.2.0_2/include/vtk-8.2"
             ],
             "defines": [],
             "macFrameworkPath": [

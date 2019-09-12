@@ -13,6 +13,12 @@ struct Line {
 	int b;
 	int c;
 
+	Line() {
+		a = 0;
+		b = 0;
+		c = 0;
+	}
+
 	Line(const pcl::PointXYZ& point1, const pcl::PointXYZ& point2) {
 		a = point1.y - point2.y;
 		b = point2.x - point1.x;

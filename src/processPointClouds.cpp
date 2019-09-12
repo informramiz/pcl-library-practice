@@ -41,9 +41,31 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
 template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud) 
 {
-  // TODO: Create two new point clouds, one cloud with obstacles and other with segmented plane
+    // COMPLETED: Create two new point clouds, one cloud with obstacles and other with segmented plane
+    //create object to hold the extracted points for the plane
+    typename pcl::PointCloud<PointT>::Ptr planeCloud(pcl::PointCloud<PointT>), obstacleCloud(pcl::PointCloud<PointT>);
 
-    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(cloud, cloud);
+    //create extracter
+    pcl::ExtractIndices<PointT> extract;
+    //give it input cloud
+    extract.setInputCloud(cloud);
+
+    //we want to extract inliers (plan points) first so set negative points to false to ignore them
+    extract.setNegative(false);
+    //set indices of points representing the plan
+    extract.setIndices(*inliers);
+    //extract plan points in `planeCloud`
+    extract.filter(*planeCloud);
+
+    //now extract the obstacle points by ignoring the positive points (inliers, plane points) and just picking 
+    //negative points (obstacles). It is basically subtraction of plane from the main cloud
+    extract.setNagative(true);
+    extract.filter(*obstacleCloud);
+
+    std::cout << "Points representing plane: " << planeCloud->width * planeCloud->height << std::endl;
+    std::cout << "Points representing obstacles: " << obstacleCloud->width * obstacleCloud->height << std::endl;
+
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult(obstacleCloud, planeCloud);
     return segResult;
 }
 

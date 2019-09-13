@@ -172,24 +172,28 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     // Time segmentation process
     auto startTime = std::chrono::steady_clock::now();
 
-    // COMPLETED:: Fill in this function to find inliers for the cloud.
-
-    //coefficients object hold model coefficients [a, b, c, d]. (in this case, plan, ax + by + cz + d) 
-    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients());
     //to hold points that fit to the plane with error less than a threshold
-    pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
     std::pair<std::unordered_set<int>, Plane<PointT> > inliersAndPlane = PlaneRansac(cloud, maxIterations, distanceThreshold);
-    for (auto index: inliersAndPlane.first) {
-        inliers->indices.push_back(index);
-    }
-    std::cout << "Model inliers: " << inliers->indices.size () << std::endl;
+    std::unordered_set<int> inliersIndices = inliersAndPlane.first;
+    std::cout << "Model inliers: " << inliersIndices.size () << std::endl;
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
     std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
 
-    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
-    return segResult;
+    //Separate inliers for plane and outliers: Create two new point clouds, one cloud with obstacles and other with segmented plane
+    //create object to hold the extracted points for the plane
+    typename pcl::PointCloud<PointT>::Ptr planeCloud(new pcl::PointCloud<PointT>), obstacleCloud(new pcl::PointCloud<PointT>);
+    for(int pointIndex = 0; pointIndex < cloud->points.size(); pointIndex++) {
+        auto point = cloud->points[pointIndex];
+        if (inliersIndices.count(pointIndex)) {
+            planeCloud->points.push_back(point);
+        } else {
+            obstacleCloud->points.push_back(point);
+        }
+    }
+
+    return std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr>(obstacleCloud, planeCloud);
 }
 
 template<typename PointT>

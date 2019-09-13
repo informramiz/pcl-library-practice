@@ -7,7 +7,8 @@
 #include <pcl/common/common.h>
 #include "model.h"
 
-struct Line: Model {
+template<typename PointT>
+struct Line: Model<PointT> {
 	int a;
 	int b;
 	int c;
@@ -18,13 +19,13 @@ struct Line: Model {
 		c = 0;
 	}
 
-	Line(const pcl::PointXYZ& point1, const pcl::PointXYZ& point2) {
+	Line(const PointT& point1, const PointT& point2) {
 		a = point1.y - point2.y;
 		b = point2.x - point1.x;
 		c = (point1.x * point2.y) - (point2.x * point1.y);
 	}
 
-	float distanceFromPoint(const pcl::PointXYZ& point) const {
+	float distanceFromPoint(const PointT& point) const {
 		return abs(a * point.x + b * point.y + c) / sqrtf(a * a + b * b);
 	}
 };

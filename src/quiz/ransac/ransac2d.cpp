@@ -65,7 +65,7 @@ pcl::visualization::PCLVisualizer::Ptr initScene()
   	return viewer;
 }
 
-std::unordered_set<int> CountInliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const Model& line, float distanceTolerance) {
+std::unordered_set<int> CountInliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const Model<pcl::PointXYZ>& line, float distanceTolerance) {
 	std::unordered_set<int> inliers;
 	for (size_t i = 0; i < cloud->points.size(); ++i) {
 		if (line.distanceFromPoint(cloud->points[i]) <= distanceTolerance) {
@@ -75,21 +75,21 @@ std::unordered_set<int> CountInliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 	return inliers;
 }
 
-std::pair<std::unordered_set<int>, Line> LineRansac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
+std::pair<std::unordered_set<int>, Line<pcl::PointXYZ> > LineRansac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
 	
 	//COMMPLETED: Fill in this function
 	int maxixumInliers = 0;
-	Line planeWithMaxInliers;
+	Line<pcl::PointXYZ> planeWithMaxInliers;
 
 	// For max iterations 
 	for (int i = 1; i <= maxIterations; ++i) {
 		// Randomly sample subset and fit line
 		int randomPointIndex1 = rand() % cloud->points.size();
 		int randomPointIndex2 = rand() % cloud->points.size();
-		Line fittedPlane = Line(cloud->points[randomPointIndex1], cloud->points[randomPointIndex2]);
+		Line<pcl::PointXYZ> fittedPlane = Line<pcl::PointXYZ>(cloud->points[randomPointIndex1], cloud->points[randomPointIndex2]);
 		// Measure distance between every point and fitted line
 		// If distance is smaller than threshold count it as inlier
 		auto inliersForThisPlane = CountInliers(cloud, fittedPlane, distanceTol);
@@ -101,17 +101,17 @@ std::pair<std::unordered_set<int>, Line> LineRansac(pcl::PointCloud<pcl::PointXY
 
 	// Return indicies of inliers from fitted line with most inliers
 	
-	return std::pair<std::unordered_set<int>, Line>(inliersResult, planeWithMaxInliers);
+	return std::pair<std::unordered_set<int>, Line<pcl::PointXYZ> >(inliersResult, planeWithMaxInliers);
 }
 
-std::pair<std::unordered_set<int>, Plane> PlaneRansac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
+std::pair<std::unordered_set<int>, Plane<pcl::PointXYZ> > PlaneRansac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
 	
 	//COMMPLETED: Fill in this function
 	int maxixumInliers = 0;
-	Plane planeWithMaxInliers;
+	Plane<pcl::PointXYZ> planeWithMaxInliers;
 
 	// For max iterations 
 	for (int i = 1; i <= maxIterations; ++i) {
@@ -127,7 +127,7 @@ std::pair<std::unordered_set<int>, Plane> PlaneRansac(pcl::PointCloud<pcl::Point
 		int randomPointIndex2 = *iterator;
 		iterator++;
 		int randomPointIndex3 = *iterator;
-		Plane fittedPlane = Plane(cloud->points[randomPointIndex1], cloud->points[randomPointIndex2], cloud->points[randomPointIndex3]);
+		Plane<pcl::PointXYZ> fittedPlane = Plane<pcl::PointXYZ>(cloud->points[randomPointIndex1], cloud->points[randomPointIndex2], cloud->points[randomPointIndex3]);
 		// Measure distance between every point and fitted line
 		// If distance is smaller than threshold count it as inlier
 		auto inliersForThisPlane = CountInliers(cloud, fittedPlane, distanceTol);
@@ -139,7 +139,7 @@ std::pair<std::unordered_set<int>, Plane> PlaneRansac(pcl::PointCloud<pcl::Point
 
 	// Return indicies of inliers from fitted line with most inliers
 	
-	return std::pair<std::unordered_set<int>, Plane>(inliersResult, planeWithMaxInliers);
+	return std::pair<std::unordered_set<int>, Plane<pcl::PointXYZ> >(inliersResult, planeWithMaxInliers);
 }
 
 void renderInliersAndOutliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const std::unordered_set<int>& inliers) {
@@ -180,8 +180,8 @@ void testLineRansac() {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData();
 	
 	// COMPLETED: Change the max iteration and distance tolerance arguments for LineRansac function
-	std::pair<std::unordered_set<int>, Line> inliersAndPlane = LineRansac(cloud, 50, 0.8);
-	Line line = inliersAndPlane.second;
+	std::pair<std::unordered_set<int>, Line<pcl::PointXYZ> > inliersAndPlane = LineRansac(cloud, 50, 0.8);
+	Line<pcl::PointXYZ> line = inliersAndPlane.second;
 	std::unordered_set<int> inliers = inliersAndPlane.first;
 	renderInliersAndOutliers(cloud, inliers);  	
 }
@@ -191,8 +191,8 @@ void testPlaneRansac() {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData3D();
 	
 	// COMPLETED: Change the max iteration and distance tolerance arguments for LineRansac function
-	std::pair<std::unordered_set<int>, Plane> inliersAndPlane = PlaneRansac(cloud, 50, 0.3);
-	Plane plane = inliersAndPlane.second;
+	std::pair<std::unordered_set<int>, Plane<pcl::PointXYZ> > inliersAndPlane = PlaneRansac(cloud, 50, 0.3);
+	Plane<pcl::PointXYZ> plane = inliersAndPlane.second;
 	std::unordered_set<int> inliers = inliersAndPlane.first;
 	renderInliersAndOutliers(cloud, inliers);  	
 }
@@ -211,7 +211,7 @@ void testPlaneModelCorrectness() {
 	point3.y = 15;
 	point3.z = 0;
 
-	Plane plane(point1, point2, point3);
+	Plane<pcl::PointXYZ> plane(point1, point2, point3);
 	std::cout << "Plane(a, b, c, d) = (" << plane.a << ", " << plane.b << ", " << plane.c << ", " << plane.d << ")" << std::endl;
 	std::cout << "Distance from Point: " << plane.distanceFromPoint(point1) << std::endl;
 }

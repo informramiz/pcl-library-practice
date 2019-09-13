@@ -7,7 +7,8 @@
 #include <pcl/common/common.h>
 #include "model.h"
 
-struct Plane: Model {
+template<typename PointT>
+struct Plane: Model<PointT> {
 	int a;
 	int b;
 	int c;
@@ -20,7 +21,7 @@ struct Plane: Model {
 		d = 0;
 	}
 
-	Plane(const pcl::PointXYZ& point1, const pcl::PointXYZ& point2, const pcl::PointXYZ& point3) {
+	Plane(const PointT& point1, const PointT& point2, const PointT& point3) {
 		//a = (y2−y1)(z3−z1)−(z2−z1)(y3−y1)
 		a = (point2.y - point1.y)*(point3.z - point1.z) - (point2.z - point1.z)*(point3.y - point1.y);
 		//b = (z2-z1)(x3-x1)-(x2-x1)(z3-z1)
@@ -31,7 +32,7 @@ struct Plane: Model {
 		d = -(a*point1.x + b*point1.y + c*point1.z);
 	}
 
-	float distanceFromPoint(const pcl::PointXYZ& point) const {
+	float distanceFromPoint(const PointT& point) const {
 		//d=∣A∗x+B∗y+C∗z+D∣/sqrt(A^2+B^2+C^2)
 		return fabs(a*point.x + b*point.y + c*point.z + d) / sqrtf(a*a + b*b + c*c);
 	}

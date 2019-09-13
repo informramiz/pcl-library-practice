@@ -19,7 +19,6 @@ void ProcessPointClouds<PointT>::numPoints(typename pcl::PointCloud<PointT>::Ptr
     std::cout << cloud->points.size() << std::endl;
 }
 
-
 template<typename PointT>
 typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(typename pcl::PointCloud<PointT>::Ptr cloud, float filterRes, Eigen::Vector4f minPoint, Eigen::Vector4f maxPoint)
 {
@@ -37,6 +36,55 @@ typename pcl::PointCloud<PointT>::Ptr ProcessPointClouds<PointT>::FilterCloud(ty
 
 }
 
+template<typename PointT>
+std::unordered_set<int> ProcessPointClouds<PointT>::GetInliers(typename pcl::PointCloud<PointT>::Ptr cloud, const Model<PointT>& model, float distanceTolerance) {
+    std::unordered_set<int> inliers;
+	for (size_t i = 0; i < cloud->points.size(); ++i) {
+		if (model.distanceFromPoint(cloud->points[i]) <= distanceTolerance) {
+			inliers.insert(i);
+		}
+	}
+	return inliers;
+}
+
+template<typename PointT>
+std::pair<std::unordered_set<int>, Plane<PointT> > ProcessPointClouds<PointT>::PlaneRansac(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceTol)
+{
+	std::unordered_set<int> inliersResult;
+	srand(time(NULL));
+	
+	//COMMPLETED: Fill in this function
+	int maxixumInliers = 0;
+	Plane<PointT> planeWithMaxInliers;
+
+	// For max iterations 
+	for (int i = 1; i <= maxIterations; ++i) {
+		std::unordered_set<int> randomPointIndices;
+		while (randomPointIndices.size() < 3) {
+			int randomPointIndex = rand() % cloud->points.size();
+			randomPointIndices.insert(randomPointIndex);
+		}
+		// Randomly sample subset and fit Plane
+		std::unordered_set<int>::iterator iterator = randomPointIndices.begin();
+		int randomPointIndex1 = *iterator;
+		iterator++;
+		int randomPointIndex2 = *iterator;
+		iterator++;
+		int randomPointIndex3 = *iterator;
+		Plane<PointT> fittedPlane = Plane<PointT>(cloud->points[randomPointIndex1], cloud->points[randomPointIndex2], cloud->points[randomPointIndex3]);
+		// Measure distance between every point and fitted line
+		// If distance is smaller than threshold count it as inlier
+		auto inliersForThisPlane = GetInliers(cloud, fittedPlane, distanceTol);
+		if (inliersForThisPlane.size() > inliersResult.size()) {
+			inliersResult = inliersForThisPlane;
+			planeWithMaxInliers = fittedPlane;
+		} 
+	}
+
+	// Return indicies of inliers from fitted line with most inliers
+	
+	return std::pair<std::unordered_set<int>, Plane<PointT> >(inliersResult, planeWithMaxInliers);
+}
 
 template<typename PointT>
 std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SeparateClouds(pcl::PointIndices::Ptr inliers, typename pcl::PointCloud<PointT>::Ptr cloud) 
@@ -118,6 +166,31 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
     return segResult;
 }
 
+template<typename PointT>
+std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SegmentPlaneManual(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceThreshold)
+{
+    // Time segmentation process
+    auto startTime = std::chrono::steady_clock::now();
+
+    // COMPLETED:: Fill in this function to find inliers for the cloud.
+
+    //coefficients object hold model coefficients [a, b, c, d]. (in this case, plan, ax + by + cz + d) 
+    pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients());
+    //to hold points that fit to the plane with error less than a threshold
+    pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+    std::pair<std::unordered_set<int>, Plane<PointT> > inliersAndPlane = PlaneRansac(cloud, maxIterations, distanceThreshold);
+    for (auto index: inliersAndPlane.first) {
+        inliers->indices.push_back(index);
+    }
+    std::cout << "Model inliers: " << inliers->indices.size () << std::endl;
+
+    auto endTime = std::chrono::steady_clock::now();
+    auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    std::cout << "plane segmentation took " << elapsedTime.count() << " milliseconds" << std::endl;
+
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers,cloud);
+    return segResult;
+}
 
 template<typename PointT>
 std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize)

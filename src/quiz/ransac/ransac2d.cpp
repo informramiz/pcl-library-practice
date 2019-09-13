@@ -150,29 +150,17 @@ std::pair<std::unordered_set<int>, Line> Ransac(pcl::PointCloud<pcl::PointXYZ>::
 		if (inliersForThisLine.size() > inliersResult.size()) {
 			inliersResult = inliersForThisLine;
 			lineWithMaxInliers = fittedLine;
-		}
+		} 
 	}
 
 	// Return indicies of inliers from fitted line with most inliers
 	
 	return std::pair<std::unordered_set<int>, Line>(inliersResult, lineWithMaxInliers);
-
 }
 
-int main ()
-{
+void renderInliersAndOutliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const std::unordered_set<int>& inliers) {
 	// Create viewer
 	pcl::visualization::PCLVisualizer::Ptr viewer = initScene();
-
-	// Create data
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData();
-	
-
-	// COMPLETED: Change the max iteration and distance tolerance arguments for Ransac function
-	std::pair<std::unordered_set<int>, Line> inliersAndLine = Ransac(cloud, 50, 0.8);
-	Line line = inliersAndLine.second;
-	std::unordered_set<int> inliers = inliersAndLine.first;
-
 	pcl::PointCloud<pcl::PointXYZ>::Ptr  cloudInliers(new pcl::PointCloud<pcl::PointXYZ>());
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloudOutliers(new pcl::PointCloud<pcl::PointXYZ>());
 
@@ -201,5 +189,16 @@ int main ()
   	{
   	  viewer->spinOnce ();
   	}
-  	
+}
+
+int main ()
+{
+	// Create data
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData();
+	
+	// COMPLETED: Change the max iteration and distance tolerance arguments for Ransac function
+	std::pair<std::unordered_set<int>, Line> inliersAndLine = Ransac(cloud, 50, 0.8);
+	Line line = inliersAndLine.second;
+	std::unordered_set<int> inliers = inliersAndLine.first;
+	renderInliersAndOutliers(cloud, inliers);  	
 }

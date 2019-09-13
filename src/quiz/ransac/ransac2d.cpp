@@ -191,8 +191,7 @@ void renderInliersAndOutliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const s
   	}
 }
 
-int main ()
-{
+void testLineRansac() {
 	// Create data
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData();
 	
@@ -201,4 +200,8 @@ int main ()
 	Line line = inliersAndLine.second;
 	std::unordered_set<int> inliers = inliersAndLine.first;
 	renderInliersAndOutliers(cloud, inliers);  	
+}
+
+int main () {
+	testLineRansac();
 }

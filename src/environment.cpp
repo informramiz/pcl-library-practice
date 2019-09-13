@@ -34,6 +34,13 @@ std::vector<Car> initHighway(bool renderScene, pcl::visualization::PCLVisualizer
     return cars;
 }
 
+void renderSegmentationResult(pcl::visualization::PCLVisualizer::Ptr& viewer,
+std::pair<typename pcl::PointCloud<pcl::PointXYZ>::Ptr, typename pcl::PointCloud<pcl::PointXYZ>::Ptr> segmentationResult) {
+     //render both road/plane and obstacles
+    renderPointCloud(viewer, segmentationResult.first, "obstacles", Color(1, 0, 0));
+    renderPointCloud(viewer, segmentationResult.second, "plane Cloud", Color(0, 1, 0));
+}
+
 
 void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer)
 {
@@ -55,10 +62,7 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer)
     // COMPLETED:: Create point processor
     ProcessPointClouds<pcl::PointXYZ> pointCloudProcessor;
     std::pair<typename pcl::PointCloud<pcl::PointXYZ>::Ptr, typename pcl::PointCloud<pcl::PointXYZ>::Ptr> segmentationResult = pointCloudProcessor.SegmentPlaneManual(cloud, 100, 0.2);
-
-    //render both road/plane and obstacles
-    renderPointCloud(viewer, segmentationResult.first, "obstacles", Color(1, 0, 0));
-    renderPointCloud(viewer, segmentationResult.second, "plane Cloud", Color(0, 1, 0));
+    renderSegmentationResult(viewer, segmentationResult);
 }
 
 

@@ -8,7 +8,12 @@
 // using templates for processPointClouds so also include .cpp to help linker
 #include "../../processPointClouds.cpp"
 
-struct Line {
+class Model{
+public:
+	virtual float distanceFromPoint(const pcl::PointXYZ& point) const = 0;
+};
+
+struct Line: Model {
 	int a;
 	int b;
 	int c;
@@ -27,35 +32,6 @@ struct Line {
 
 	float distanceFromPoint(const pcl::PointXYZ& point) const {
 		return abs(a * point.x + b * point.y + c) / sqrtf(a * a + b * b);
-	}
-};
-
-struct Plane {
-	int a;
-	int b;
-	int c;
-	int d;
-
-	Plane() {
-		a = 0;
-		b = 0;
-		c = 0;
-		d = 0;
-	}
-
-	Plane(const pcl::PointXYZ& point1, const pcl::PointXYZ& point2, const pcl::PointXYZ& point3) {
-		//a = (y2−y1)(z3−z1)−(z2−z1)(y3−y1)
-		a = (point2.y - point1.y)*(point3.z - point1.z) - (point2.z - point1.z)*(point3.y - point1.y);
-		//b = (z2-z1)(x3-x1)-(x2-x1)(z3-z1)
-		b = (point2.z - point1.z)*(point3.x - point1.x) - (point2.x - point1.x)*(point3.z - point1.z);
-		//c = (x2−x1)(y3−y1)−(y2−y1)(x3−x1)
-		c = (point2.x - point1.x)*(point3.y-point1.y) - (point2.y - point1.y)*(point3.x-point1.x);
-		// d = −(ix1+jy1+kz1)
-		d = -(a*point1.x + b*point1.y + c*point1.z);
-	}
-
-	float distanceFromPoint(const pcl::PointXYZ& point) const {
-		return fabs(a*point.x + b*point.y + c*point.z + d) / sqrtf(a*a + b*b + c*c);
 	}
 };
 
@@ -113,7 +89,7 @@ pcl::visualization::PCLVisualizer::Ptr initScene()
   	return viewer;
 }
 
-std::unordered_set<int> CountInliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const Line& line, float distanceTolerance) {
+std::unordered_set<int> CountInliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, const Model& line, float distanceTolerance) {
 	std::unordered_set<int> inliers;
 	for (size_t i = 0; i < cloud->points.size(); ++i) {
 		if (line.distanceFromPoint(cloud->points[i]) <= distanceTolerance) {

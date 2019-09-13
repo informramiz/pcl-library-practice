@@ -129,7 +129,7 @@ std::unordered_set<int> CountInliers(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 	return inliers;
 }
 
-std::pair<std::unordered_set<int>, Line> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
+std::pair<std::unordered_set<int>, Line> LineRansac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol)
 {
 	std::unordered_set<int> inliersResult;
 	srand(time(NULL));
@@ -195,8 +195,8 @@ void testLineRansac() {
 	// Create data
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = CreateData();
 	
-	// COMPLETED: Change the max iteration and distance tolerance arguments for Ransac function
-	std::pair<std::unordered_set<int>, Line> inliersAndLine = Ransac(cloud, 50, 0.8);
+	// COMPLETED: Change the max iteration and distance tolerance arguments for LineRansac function
+	std::pair<std::unordered_set<int>, Line> inliersAndLine = LineRansac(cloud, 50, 0.8);
 	Line line = inliersAndLine.second;
 	std::unordered_set<int> inliers = inliersAndLine.first;
 	renderInliersAndOutliers(cloud, inliers);  	

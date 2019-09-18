@@ -15,3 +15,6 @@ A repo in which I practice PCL library.
 - Below is segmentation of road (green) and obstacles (red) using `plane fitting model` and `RANSAC` that I wrote without using _PCL_ library.
 
 	![manual-obstancle-detection](demo/manual-plane-fit-obstacle-detection.png)
+	
+- Below is clustering of 3 obstacles using _pcl_ built-in `euclidean clustering` algorithm
+	![pcl-euclidean-clustering](demo/clustering-pcl.png)

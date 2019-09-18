@@ -203,9 +203,35 @@ std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::C
     // Time clustering process
     auto startTime = std::chrono::steady_clock::now();
 
-    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
+    //COMPLETED:: Fill in the function to perform euclidean clustering to group detected obstacles
 
-    // TODO:: Fill in the function to perform euclidean clustering to group detected obstacles
+    //build KD-tree that will be used by Euclidean clustering algorithm for searching
+    typename pcl::search::KdTree<PointT>::Ptr tree(new pcl::search::KdTree<PointT>);
+    tree->setInputCloud(cloud);
+    //create a vector to hold clusters points indices
+    std::vector<pcl::PointIndices> clusterPointIndices;
+    //create euclidean clustering algorithm object
+    pcl::EuclideanClusterExtraction<PointT> euclideanClusterer;
+    euclideanClusterer.setInputCloud(cloud);
+    euclideanClusterer.setSearchMethod(tree);
+    euclideanClusterer.setClusterTolerance(clusterTolerance);
+    euclideanClusterer.setMinClusterSize(minSize);
+    euclideanClusterer.setMaxClusterSize(maxSize);
+    euclideanClusterer.extract(clusterPointIndices);
+
+    //now that we have cluster point indices, let's convert them into point clound for each cluster
+    std::vector<typename pcl::PointCloud<PointT>::Ptr> clusters;
+    for (pcl::PointIndices pointIndices : clusterPointIndices) {
+        typename pcl::PointCloud<PointT>::Ptr clusterPointCloud(new pcl::PointCloud<PointT>);
+        for (int pointIndex : pointIndices.indices) {
+            clusterPointCloud->points.push_back(cloud->points[pointIndex]);
+        }
+        clusterPointCloud->width = clusterPointCloud->points.size();
+        clusterPointCloud->height = 1;
+        clusterPointCloud->is_dense = true;
+
+        clusters.push_back(clusterPointCloud);
+    }
 
     auto endTime = std::chrono::steady_clock::now();
     auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
